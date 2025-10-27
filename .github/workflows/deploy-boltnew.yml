@@ -1,0 +1,55 @@
+name: 🚀 Deploy Automático - Bolt.new SaaS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧩 Clonar repositório
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Instalar dependências básicas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip curl jq
+
+      - name: 🧠 Preparar pacote do SaaS
+        run: |
+          mkdir -p build
+          zip -r build/saas_package.zip . -x "*.git*" -x "*.github*"
+
+      - name: 🔑 Configurar variáveis do Bolt.new
+        env:
+          BOLT_API_KEY: ${{ secrets.BOLT_API_KEY }}
+          BOLT_PROJECT_ID: ${{ secrets.BOLT_PROJECT_ID }}
+        run: |
+          echo "🔐 Verificando chaves Bolt.new..."
+          if [ -z "$BOLT_API_KEY" ] || [ -z "$BOLT_PROJECT_ID" ]; then
+            echo "❌ Falta API Key ou Project ID no GitHub Secrets"
+            exit 1
+          fi
+          echo "✅ Chaves OK"
+
+      - name: 📦 Enviar pacote para o Bolt.new
+        run: |
+          curl -X POST "https://api.bolt.new/v1/deploy" \
+            -H "Authorization: Bearer $BOLT_API_KEY" \
+            -F "project_id=$BOLT_PROJECT_ID" \
+            -F "package=@build/saas_package.zip"
+
+      - name: 🧾 Registrar build no Vault
+        env:
+          VAULT_API: ${{ secrets.VAULT_API }}
+        run: |
+          curl -X POST "$VAULT_API/logs" \
+            -H "Content-Type: application/json" \
+            -d "{\"event\":\"deploy_completed\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"branch\":\"main\"}"
+
+      - name: ✅ Finalização
+        run: echo "🚀 Deploy concluído com sucesso para o Bolt.new!"

@@ -1,0 +1,44 @@
+name: Backup Diário Automático (com retenção de 7 dias)
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # Executa todo dia às 03:00 UTC (~00:00 Brasília)
+  workflow_dispatch:       # Permite rodar manualmente também
+  push:
+    branches:
+      - main               # (Opcional) Executa backup a cada push na main
+
+jobs:
+  gerar-backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Clonando repositório
+        uses: actions/checkout@v4
+
+      - name: 🗜️ Compactando arquivos do projeto
+        run: zip -r backup-vaultpro-$(date +%Y-%m-%d).zip .
+
+      - name: 🚀 Enviando backup como release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "backup-$(date +%Y-%m-%d)"
+          name: "Backup VaultPro $(date +%Y-%m-%d)"
+          body: |
+            Backup automático do projeto **Vault Pro Tools**.
+            Gerado em: $(date +'%d/%m/%Y %H:%M:%S')
+            Inclui todos os arquivos e histórico do repositório.
+          files: backup-vaultpro-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧹 Removendo backups antigos (mantém 7 últimos)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Limpando backups antigos..."
+          gh release list --limit 100 | grep "backup-" | tail -n +8 | awk '{print $1}' | while read tag; do
+            echo "🗑️ Removendo backup antigo: $tag"
+            gh release delete "$tag" --yes
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/$tag" || true
+          done

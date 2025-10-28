@@ -1,14 +1,16 @@
 {
   "name": "vault-pro-tools",
   "version": "1.0.0",
-  "description": "SaaS Vault Pro Tools - integração Supabase e OpenAI",
-  "main": "index.js",
+  "description": "Vault Pro Tools SaaS conectado ao Supabase",
+  "main": "src/index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node src/index.js"
   },
   "dependencies": {
-  "express": "^4.18.2",
-  "@supabase/supabase-js": "^2.45.1",
-  "cors": "^2.8.5",
-  "dotenv": "^16.3.1"
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@supabase/supabase-js": "^2.45.1"
+  }
 }

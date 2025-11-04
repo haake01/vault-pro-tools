@@ -1,58 +1,72 @@
+// index.js — versão completa e estável
+
 import express from "express";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
-// 🔹 Carrega as variáveis do .env
+// 🔹 Carrega variáveis do .env
 dotenv.config();
 
 // 🔹 Inicializa o servidor Express
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🔹 Middleware
+// 🔹 Middleware básico
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔹 Inicializa o cliente Supabase
+// 🔹 Conexão com o Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
 
-// 🔹 Página inicial — renderiza um pequeno HTML com formulário
+// 🔹 Página principal (interface simples com formulário)
 app.get("/", (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Vault Pro Tools + Supabase</title>
       <style>
         body {
           font-family: Arial, sans-serif;
-          background-color: #f5f5f5;
-          color: #222;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
+          background-color: #f8f9fa;
+          color: #333;
+          text-align: center;
+          margin-top: 80px;
         }
-        h2 { color: #006400; }
+        h1 {
+          color: #007bff;
+        }
         form {
           margin-top: 20px;
         }
-        input, button {
+        input {
           padding: 8px;
-          margin: 4px;
+          width: 200px;
+        }
+        button {
+          padding: 8px 12px;
+          background-color: #007bff;
+          border: none;
+          color: white;
+          cursor: pointer;
+        }
+        button:hover {
+          background-color: #0056b3;
+        }
+        .success {
+          color: green;
         }
       </style>
     </head>
     <body>
-      <h2>✅ Vault Pro Tools + Supabase conectado com sucesso!</h2>
+      <h1>✅ Vault Pro Tools + Supabase conectado com sucesso!</h1>
       <p>Servidor ativo na porta ${PORT}</p>
 
       <form action="/send" method="POST">
@@ -64,24 +78,33 @@ app.get("/", (req, res) => {
   `);
 });
 
-// 🔹 Rota que grava dados na tabela do Supabase
+// 🔹 Endpoint para enviar dados ao Supabase
 app.post("/send", async (req, res) => {
   const { name } = req.body;
 
   if (!name) {
-    return res.status(400).json({ success: false, message: "Nome não fornecido" });
+    return res
+      .status(400)
+      .send("<h3 style='color:red;'>Erro: nome não fornecido.</h3><a href='/'>Voltar</a>");
   }
 
-  const { data, error } = await supabase.from("test_connection").insert([{ name }]);
+  // Insere o nome na tabela "test_connection"
+  const { data, error } = await supabase
+    .from("test_connection")
+    .insert([{ name }]);
 
   if (error) {
-    console.error("Erro ao inserir no Supabase:", error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("❌ Erro ao inserir no Supabase:", error.message);
+    return res.status(500).send(`
+      <h3 style="color:red;">Erro ao salvar no Supabase:</h3>
+      <pre>${error.message}</pre>
+      <a href="/">Voltar</a>
+    `);
   }
 
-  console.log("✅ Registro inserido:", data);
+  console.log("✅ Registro inserido com sucesso:", data);
   res.send(`
-    <h3>✅ Registro salvo com sucesso!</h3>
+    <h2 class="success">✅ Registro salvo com sucesso!</h2>
     <p>Nome enviado: <strong>${name}</strong></p>
     <a href="/">Voltar</a>
   `);
@@ -89,5 +112,5 @@ app.post("/send", async (req, res) => {
 
 // 🔹 Inicia o servidor
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });

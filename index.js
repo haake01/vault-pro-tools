@@ -1,5 +1,5 @@
 // ================================================
-// VAULT PRO TOOLS - CONEXÃO SUPABASE
+// VAULT PRO TOOLS - SUPABASE CONNECTION (VERSÃO FINAL)
 // ================================================
 
 import express from "express";
@@ -10,31 +10,65 @@ import bodyParser from "body-parser";
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+// ================================================
+// CONFIGURAÇÃO SUPABASE
+// ================================================
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+// ================================================
+// MIDDLEWARES
+// ================================================
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // ================================================
-// CONFIGURAÇÃO DO SUPABASE
-// ================================================
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-const PORT = process.env.PORT || 3000;
-
-// ================================================
-// ROTA PRINCIPAL - INTERFACE HTML
+// HTML PRINCIPAL
 // ================================================
 app.get("/", (req, res) => {
   res.send(`
     <h2>✅ Vault Pro Tools + Supabase conectado com sucesso!</h2>
     <p>Servidor ativo na porta ${PORT}</p>
-    <form id="form" action="/send" method="POST">
-      <input type="text" name="name" placeholder="Digite um nome" required />
-      <button type="submit">Enviar para Supabase</button>
+    <form id="form">
+      <input type="text" id="name" placeholder="Digite um nome" required />
+      <button type="button" onclick="sendData()">Enviar para Supabase</button>
     </form>
+
+    <p id="status"></p>
+
+    <script>
+      async function sendData() {
+        const name = document.getElementById('name').value.trim();
+        const status = document.getElementById('status');
+        if (!name) {
+          status.innerText = "⚠️ Digite um nome antes de enviar.";
+          return;
+        }
+
+        try {
+          const response = await fetch('/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            status.innerText = "✅ Dado enviado com sucesso!";
+          } else {
+            status.innerText = "❌ Erro: " + (result.error || 'Falha desconhecida');
+          }
+        } catch (err) {
+          status.innerText = "💥 Erro de conexão com o servidor.";
+        }
+      }
+    </script>
   `);
 });
 
 // ================================================
-// ROTA DE ENVIO - INSERÇÃO NO SUPABASE
+// ROTA DE INSERÇÃO NO SUPABASE
 // ================================================
 app.post("/send", async (req, res) => {
   try {
@@ -42,7 +76,7 @@ app.post("/send", async (req, res) => {
     console.log("🧩 Dado recebido:", name);
 
     if (!name) {
-      return res.status(400).send("<p>❌ Nenhum nome foi enviado!</p><a href='/'>Voltar</a>");
+      return res.status(400).json({ success: false, error: "Campo 'name' vazio" });
     }
 
     const { data, error } = await supabase
@@ -50,15 +84,15 @@ app.post("/send", async (req, res) => {
       .insert([{ name }]);
 
     if (error) {
-      console.error("❌ Erro Supabase:", error.message);
-      return res.send(`<p>Erro ao salvar: ${error.message}</p><a href="/">Voltar</a>`);
+      console.error("❌ Erro ao inserir:", error.message);
+      return res.json({ success: false, error: error.message });
     }
 
-    console.log("✅ Inserção confirmada:", data);
-    res.send(`<p>✅ Nome "${name}" gravado com sucesso!</p><a href="/">Voltar</a>`);
+    console.log("✅ Inserido com sucesso:", data);
+    res.json({ success: true, data });
   } catch (err) {
-    console.error("💥 Erro geral:", err);
-    res.status(500).send("<p>Erro interno no servidor.</p><a href='/'>Voltar</a>");
+    console.error("💥 Erro interno:", err);
+    res.status(500).json({ success: false, error: "Erro interno do servidor" });
   }
 });
 

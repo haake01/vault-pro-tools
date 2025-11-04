@@ -1,3 +1,7 @@
+// ================================================
+// VAULT PRO TOOLS - CONEXÃO SUPABASE
+// ================================================
+
 import express from "express";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
@@ -6,16 +10,18 @@ import bodyParser from "body-parser";
 dotenv.config();
 
 const app = express();
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-// Conexão com o Supabase
+// ================================================
+// CONFIGURAÇÃO DO SUPABASE
+// ================================================
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
-// Porta
 const PORT = process.env.PORT || 3000;
 
-// Página inicial
+// ================================================
+// ROTA PRINCIPAL - INTERFACE HTML
+// ================================================
 app.get("/", (req, res) => {
   res.send(`
     <h2>✅ Vault Pro Tools + Supabase conectado com sucesso!</h2>
@@ -24,34 +30,41 @@ app.get("/", (req, res) => {
       <input type="text" name="name" placeholder="Digite um nome" required />
       <button type="submit">Enviar para Supabase</button>
     </form>
-    <p id="msg"></p>
   `);
 });
 
-// Rota de envio (POST)
+// ================================================
+// ROTA DE ENVIO - INSERÇÃO NO SUPABASE
+// ================================================
 app.post("/send", async (req, res) => {
-  const { name } = req.body;
+  try {
+    const { name } = req.body;
+    console.log("🧩 Dado recebido:", name);
 
-  console.log("🧩 Valor recebido no servidor:", name);
+    if (!name) {
+      return res.status(400).send("<p>❌ Nenhum nome foi enviado!</p><a href='/'>Voltar</a>");
+    }
 
-  if (!name) {
-    return res.status(400).send("<p>❌ Nenhum nome recebido!</p><a href='/'>Voltar</a>");
+    const { data, error } = await supabase
+      .from("test_connection")
+      .insert([{ name }]);
+
+    if (error) {
+      console.error("❌ Erro Supabase:", error.message);
+      return res.send(`<p>Erro ao salvar: ${error.message}</p><a href="/">Voltar</a>`);
+    }
+
+    console.log("✅ Inserção confirmada:", data);
+    res.send(`<p>✅ Nome "${name}" gravado com sucesso!</p><a href="/">Voltar</a>`);
+  } catch (err) {
+    console.error("💥 Erro geral:", err);
+    res.status(500).send("<p>Erro interno no servidor.</p><a href='/'>Voltar</a>");
   }
-
-  const { data, error } = await supabase
-    .from("test_connection")
-    .insert([{ name }]);
-
-  if (error) {
-    console.error("Erro ao inserir:", error);
-    return res.send(`<p>❌ Erro ao enviar dados: ${error.message}</p><a href="/">Voltar</a>`);
-  }
-
-  console.log("✅ Dado inserido:", data);
-  res.send(`<p>✅ Nome "${name}" enviado com sucesso!</p><a href="/">Voltar</a>`);
 });
 
-// Iniciar servidor
+// ================================================
+// INICIALIZAÇÃO
+// ================================================
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });

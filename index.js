@@ -20,32 +20,22 @@ app.use(express.json());
 // ===============================
 // 🧩 Conexão com Supabase
 // ===============================
-const supabase = createClient(
-  process.env.BOLT_DATABASE_URL,
-  process.env.BOLT_DATABASE_ANON_KEY
-);
-
-// Rota inicial para testar a conexão
-app.get("/", async (req, res) => {
+app.post("/api/test", async (req, res) => {
   try {
-    // Teste de comunicação simples com o Supabase
-    const { data, error } = await supabase.from("test_connection").select("*").limit(1);
+    const { name } = req.body;
+
+    const { data, error } = await supabase
+      .from("test_connection")
+      .insert([{ name }]);
 
     if (error) {
-      throw error;
+      console.error("Erro ao inserir no Supabase:", error);
+      return res.status(500).json({ error: error.message });
     }
 
-    res.send("✅ Vault Pro Tools + Supabase conectado com sucesso!");
+    res.json({ success: true, data });
   } catch (err) {
-    console.error("Erro na conexão com o Supabase:", err.message);
-    res.status(500).send("❌ Falha ao conectar ao Supabase: " + err.message);
+    console.error("Erro no servidor:", err);
+    res.status(500).json({ error: "Erro interno no servidor" });
   }
-});
-
-// ===============================
-// 🚀 Inicialização do servidor
-// ===============================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
 });

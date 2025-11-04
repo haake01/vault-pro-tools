@@ -1,21 +1,15 @@
 {
   "name": "vault-pro-tools",
   "version": "1.0.0",
-  "description": "🚀 Vault Pro Tools rodando no Render com integração Supabase",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "@supabase/supabase-js": "^2.45.0"
-  },
-  "engines": {
-    "node": ">=18.x"
-  },
-  "author": "Kleber Haake",
-  "license": "MIT"
+    "@supabase/supabase-js": "^2.42.3",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
 }

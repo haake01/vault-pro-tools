@@ -1,0 +1,20 @@
+{
+  "name": "vault-pro-tools",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-openid-connect": "^2.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,12 +1,15 @@
 {
+  "type": "module"
+}
+
+{
   "name": "vault-pro-tools",
   "version": "1.0.0",
-  "description": "Vault Pro Tools - integração com Auth0 e Supabase",
-  "main": "index.js",
-  "type": "module",
+  "description": "Vault Pro Tools - Backend com Auth0 e Supabase",
+  "main": "index.cjs",
   "scripts": {
-  "start": "node index.cjs"
-}
+    "start": "node index.cjs"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
     "body-parser": "^1.20.2",

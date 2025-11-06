@@ -27,7 +27,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/profile", (req, res) => {
-  res.json(req.oidc.user);
+  res.json(req.oidc.user || { error: "Usuário não autenticado" });
 });
 
+// exporta handler para Vercel (ponto crucial!)
 export default app;

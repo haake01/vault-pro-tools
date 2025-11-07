@@ -1,24 +1,16 @@
 {
   "name": "vault-pro-tools",
   "version": "1.0.0",
-  "description": "Vault Pro Tools - Auth0 + Express API for SaaS Authentication and Integration",
-  "main": "api/index.js",
+  "description": "SaaS com Auth0 + Express (Vercel)",
+  "main": "api/index.mjs",
   "type": "module",
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "nodemon api/index.js"
+    "dev": "node api/index.mjs",
+    "start": "node api/index.mjs"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-openid-connect": "^2.17.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "author": "Kleber Haake",
-  "license": "MIT"
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-openid-connect": "^2.19.2"
+  }
 }
